@@ -6,11 +6,20 @@ namespace InMemoryRepositories;
 
 public class UserInMemoryRepository : IUserRepository
 {
-    private readonly List<User> _users = [];
+    private readonly List<User> _users = new();
+
+    public UserInMemoryRepository()
+    {
+        AddAsync(new User("Alice Smith", "123456", "alice@example.com"));
+        AddAsync(new User("Bob Johnson", "abcdef", "bob@example.com"));
+        AddAsync(new User("Charlie Brown", "qwerty", "charlie@example.com"));
+        AddAsync(new User("Diana Prince", "zxcvbn", "diana@example.com"));
+        AddAsync(new User("Ethan Hunt", "passw0rd", "ethan@example.com"));
+    }
 
     public Task<User> AddAsync(User user)
     {
-        user.Id = _users.Any() 
+        user.Id = _users.Any()
             ? _users.Max(u => u.Id) + 1
             : 1;
         _users.Add(user);

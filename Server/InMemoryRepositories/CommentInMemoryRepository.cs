@@ -6,7 +6,16 @@ namespace InMemoryRepositories;
 
 public class CommentInMemoryRepository : ICommentRepository
 {
-    private readonly List<Comment> _comments = [];
+    private readonly List<Comment> _comments = new();
+
+    public CommentInMemoryRepository()
+    {
+        AddAsync(new Comment("This is the first dummy comment.", 1, 1));
+        AddAsync(new Comment("This is the second dummy comment.", 1, 2));
+        AddAsync(new Comment("This is the third dummy comment.", 2, 3));
+        AddAsync(new Comment("This is the fourth dummy comment.", 3, 4));
+        AddAsync(new Comment("This is the fifth dummy comment.", 4, 5));
+    }
 
     public Task<Comment> AddAsync(Comment comment)
     {
