@@ -3,8 +3,6 @@ using System.Runtime.CompilerServices;
 using CLI.UI.ManageComments;
 using CLI.UI.ManagePosts;
 using CLI.UI.ManageUsers;
-using Entities;
-using InMemoryRepositories;
 using RepositoryContracts;
 
 public class CliApp

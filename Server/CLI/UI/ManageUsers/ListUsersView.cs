@@ -8,11 +8,11 @@ public class ListUsersView(IUserRepository UserRepository)
     public async Task ListUsersAsync()
     {
         Console.WriteLine("Listing users...");
-        var usersQuery = UserRepository.GetManyAsync();
-        var users = usersQuery.ToList(); // Synchronous
+        var usersQuery = UserRepository.GetMany();
+        var users = await Task.Run(() => usersQuery.ToList()); // Run synchronously on background thread
         foreach (var user in users)
         {
-            Console.WriteLine($"{user.Id}: {user.Username}");
+            Console.WriteLine($"id: {user.Id}: name: {user.Username} email: {user.Email}");
         }
     }
 }
