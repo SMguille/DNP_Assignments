@@ -1,0 +1,177 @@
+@WebAPI_HostAddress = http://localhost:5033
+Accept: application/json
+
+#########################################
+# USERS CONTROLLER
+#########################################
+
+### Create User
+POST {{WebAPI_HostAddress}}/users
+Content-Type: application/json
+
+{
+  "userName": "alice0",
+  "password": "password123",
+  "email": "alice@example.com"
+}
+
+###
+
+### Get All Users
+GET {{WebAPI_HostAddress}}/users
+
+###
+
+### Filter Users by Username
+GET {{WebAPI_HostAddress}}/users?search=ali
+Accept: application/json
+
+###
+
+### Get User by ID
+GET {{WebAPI_HostAddress}}/users/1
+Accept: application/json
+
+###
+
+### Update User
+PUT {{WebAPI_HostAddress}}/users/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "userName": "alice_updated",
+  "password": "newpassword123",
+  "email": "alice_updated@example.com"
+}
+
+###
+
+### Delete User
+DELETE {{WebAPI_HostAddress}}/users/1
+
+#########################################
+# POSTS CONTROLLER
+#########################################
+
+### Create Post
+POST {{WebAPI_HostAddress}}/api/posts
+Content-Type: application/json
+
+{
+  "title": "First Post",
+  "body": "This is my first post.",
+  "userId": 1,
+  "subForumId": 10
+}
+
+###
+
+### Get All Posts
+GET {{WebAPI_HostAddress}}/api/posts
+Accept: application/json
+
+###
+
+### Filter Posts by Title
+GET {{WebAPI_HostAddress}}/api/posts?title=first
+Accept: application/json
+
+###
+
+### Filter Posts by Author Name
+GET {{WebAPI_HostAddress}}/api/posts?createdByName=alice
+Accept: application/json
+
+###
+
+### Filter Posts by Author ID
+GET {{WebAPI_HostAddress}}/api/posts?createdById=1
+Accept: application/json
+
+###
+
+### Get Post by ID
+GET {{WebAPI_HostAddress}}/api/posts/1
+Accept: application/json
+
+###
+
+### Update Post
+PUT {{WebAPI_HostAddress}}/api/posts/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "title": "Updated Post Title",
+  "body": "This post has been updated.",
+  "userId": 1,
+  "subForumId": 10
+}
+
+###
+
+### Delete Post
+DELETE {{WebAPI_HostAddress}}/api/posts/1
+
+#########################################
+# COMMENTS CONTROLLER
+#########################################
+
+### Create Comment
+POST {{WebAPI_HostAddress}}/api/comments
+Content-Type: application/json
+
+{
+  "body": "Nice post!",
+  "userId": 1,
+  "postId": 1
+}
+
+###
+
+### Get All Comments
+GET {{WebAPI_HostAddress}}/api/comments
+Accept: application/json
+
+###
+
+### Filter Comments by Post ID
+GET {{WebAPI_HostAddress}}/api/comments?postId=1
+Accept: application/json
+
+###
+
+### Filter Comments by Username
+GET {{WebAPI_HostAddress}}/api/comments?createdByName=alice
+Accept: application/json
+
+###
+
+### Filter Comments by User ID
+GET {{WebAPI_HostAddress}}/api/comments?createdById=1
+Accept: application/json
+
+###
+
+### Get Comment by ID
+GET {{WebAPI_HostAddress}}/api/comments/1
+Accept: application/json
+
+###
+
+### Update Comment
+PUT {{WebAPI_HostAddress}}/api/comments/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "body": "Updated comment text",
+  "postId": 1,
+  "userId": 1
+}
+
+###
+
+### Delete Comment
+DELETE {{WebAPI_HostAddress}}/api/comments/1
