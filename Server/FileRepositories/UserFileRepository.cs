@@ -42,7 +42,6 @@ public class UserFileRepository : IUserRepository
         users.Add(user);
         usersAsJson = JsonSerializer.Serialize(users);
         await File.WriteAllTextAsync(filePath, usersAsJson);
-        return;
     }
 
     public async Task DeleteAsync(int id)
@@ -57,7 +56,6 @@ public class UserFileRepository : IUserRepository
         users.Remove(existingUser);
         usersAsJson = JsonSerializer.Serialize(users);
         await File.WriteAllTextAsync(filePath, usersAsJson);
-        return;
     }
 
     public async Task<User> GetSingleAsync(int id)

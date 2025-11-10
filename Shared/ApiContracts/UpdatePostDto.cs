@@ -1,8 +1,8 @@
 using System;
 
-namespace Entities;
+namespace ApiContracts;
 
-public class Post(string Title, string Body, int UserId, int SubForumId = 0)
+public class UpdatePostDto(string Title, string Body, int UserId, int SubForumId = 0)
 {
     public int Id { get; set; } = 0;
     public string Title { get; set; } = Title;
@@ -10,7 +10,8 @@ public class Post(string Title, string Body, int UserId, int SubForumId = 0)
     public int UserId { get; set; } = UserId;
     public int SubForumId { get; set; } = SubForumId;
 
-    public Post() : this(string.Empty, string.Empty, 0, 0)
+    public UpdatePostDto() : this(string.Empty, string.Empty, 0, 0)
     {
     }
+
 }

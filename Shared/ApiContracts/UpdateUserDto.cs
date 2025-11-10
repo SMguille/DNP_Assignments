@@ -1,29 +1,23 @@
 using System;
 
-namespace Entities;
+namespace ApiContracts;
 
-public class User
+public class UpdateUserDto
 {
-    public int Id { get; set; } = 0;
+    public int Id { get; set; }
     public string UserName { get; set; }
     public string Password { get; set; }
     public string? Email { get; set; }
-
-    public User(string userName, string password)
+    public UpdateUserDto(int id, string userName, string password, string? email)
     {
-        UserName = userName;
-        Password = password;
-    }
-
-    public User(string userName, string password, string email)
-    {
+        Id = id;
         UserName = userName;
         Password = password;
         Email = email;
     }
-    public User()
+    public UpdateUserDto()
     {
-        this.Id = 0;
+        Id = 0;
         UserName = string.Empty;
         Password = string.Empty;
         Email = null;
