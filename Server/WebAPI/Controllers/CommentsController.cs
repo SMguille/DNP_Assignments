@@ -17,7 +17,7 @@ public class CommentsController(ICommentRepository commentRepository, IUserRepos
     [HttpPost]
     public async Task<ActionResult<CommentDto>> AddComment([FromBody] CreateCommentDto request)
     {
-        Comment comment = new(request.Body, request.UserId, request.PostId);
+        Comment comment = new(request.Body, request.PostId, request.UserId);
         Comment created = await commentRepo.AddAsync(comment);
         CommentDto dto = new()
         {
@@ -56,7 +56,7 @@ public class CommentsController(ICommentRepository commentRepository, IUserRepos
         if (comment == null)
             return NotFound();
 
-        return Ok(new CommentDto { Id = comment.Id, PostId = comment.PostId, UserId = comment.UserId });
+        return Ok(new CommentDto { Id = comment.Id, Body = comment.Body, PostId = comment.PostId, UserId = comment.UserId });
     }
 
 
@@ -94,6 +94,7 @@ public class CommentsController(ICommentRepository commentRepository, IUserRepos
         var commentDtos = comments.Select(c => new CommentDto
         {
             Id = c.Id,
+            Body = c.Body,
             PostId = c.PostId,
             UserId = c.UserId
         }).ToList();

@@ -1,4 +1,6 @@
 using BlazorApp.Components;
+using BlazorApp.Services;
+using ApiContracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,9 +10,14 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddScoped(sp => new HttpClient
     {
-        BaseAddress = new Uri("https://localhost:7005") //Change port to the one from the server
+        BaseAddress = new Uri("https://localhost:7093/api/") //Change port to the one from the server
     }
 );
+
+// Register HTTP-backed client services
+builder.Services.AddScoped<ICommentService, HttpCommentService>();
+builder.Services.AddScoped<IPostService, HttpPostService>();
+builder.Services.AddScoped<IUserService, HttpUserService>();
 
 var app = builder.Build();
 

@@ -32,7 +32,7 @@ public class PostFileRepository : IPostRepository
         return post;
     }
 
-    public async Task UpdateAsync(Post post)
+    public async Task<Post> UpdateAsync(Post post)
     {
         string postsAsJson = await File.ReadAllTextAsync(filePath);
         List<Post> posts = JsonSerializer.Deserialize<List<Post>>(postsAsJson)!;
@@ -45,7 +45,7 @@ public class PostFileRepository : IPostRepository
         posts.Add(post);
         postsAsJson = JsonSerializer.Serialize(posts);
         await File.WriteAllTextAsync(filePath, postsAsJson);
-        return;
+        return post;
     }
 
     public async Task DeleteAsync(int id)

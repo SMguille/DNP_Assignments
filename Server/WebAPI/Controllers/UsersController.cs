@@ -4,12 +4,13 @@ using RepositoryContracts;
 using Entities;
 using ApiContracts;
 using System.Data;
+using System.ComponentModel.DataAnnotations;
 
 namespace WebAPI.Controllers;
 
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class UsersController(IUserRepository userRepo) : ControllerBase
 {
 
@@ -23,7 +24,8 @@ public class UsersController(IUserRepository userRepo) : ControllerBase
         UserDto dto = new()
         {
             Id = created.Id,
-            UserName = created.UserName
+            UserName = created.UserName,
+            Email = created.Email
         };
         return Created($"/users/{dto.Id}", dto);
     }
@@ -57,7 +59,7 @@ public class UsersController(IUserRepository userRepo) : ControllerBase
         if (user == null)
             return NotFound();
 
-        return Ok(new UserDto { Id = user.Id, UserName = user.UserName });
+        return Ok(new UserDto { Id = user.Id, UserName = user.UserName, Email = user.Email});
     }
 
 
@@ -81,7 +83,8 @@ public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers(
         .Select(u => new UserDto
         {
             Id = u.Id,
-            UserName = u.UserName
+            UserName = u.UserName,
+            Email = u.Email
         })
         .ToList();
 

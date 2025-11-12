@@ -25,6 +25,7 @@ public class PostsController(IPostRepository postRepository, IUserRepository use
         {
             Id = created.Id,
             Title = created.Title,
+            Body = created.Body,
             UserId = created.UserId
         };
         return Created($"/posts/{dto.Id}", dto);
@@ -40,17 +41,23 @@ public class PostsController(IPostRepository postRepository, IUserRepository use
         if (existingPost == null)
             return NotFound($"Post with ID {id} not found.");
 
-        Post updatedPost = new()
-        {
-            Id = id,
-            Title = request.Title,
-            Body = request.Body,
-            UserId = request.UserId,
-            SubForumId = request.SubForumId
+        // update the existing entity in-place
+        existingPost.Title = request.Title;
+        existingPost.Body = request.Body;
+        existingPost.UserId = request.UserId;
+        existingPost.SubForumId = request.SubForumId;
 
+        var updatedPost = await postRepo.UpdateAsync(existingPost);
+
+        var updatedDto = new PostDto
+        {
+            Id = updatedPost.Id,
+            Title = updatedPost.Title,
+            Body = updatedPost.Body,
+            UserId = updatedPost.UserId
         };
-        await postRepo.UpdateAsync(updatedPost);
-        return NoContent();
+
+        return Ok(updatedDto);
     }
 
     [HttpGet("{id}")]
@@ -59,8 +66,7 @@ public class PostsController(IPostRepository postRepository, IUserRepository use
         var post = await postRepo.GetSingleAsync(id);
         if (post == null)
             return NotFound();
-
-        return Ok(new PostDto { Id = post.Id, Title = post.Title, UserId = post.UserId});
+        return Ok(new PostDto { Id = post.Id, Title = post.Title, Body = post.Body, UserId = post.UserId});
     }
 
 
@@ -96,6 +102,7 @@ public class PostsController(IPostRepository postRepository, IUserRepository use
         {
             Id = p.Id,
             Title = p.Title,
+            Body = p.Body,
             UserId = p.UserId
         }).ToList();
 

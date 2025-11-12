@@ -1,0 +1,106 @@
+﻿@page "/posts/create"
+@using ApiContracts
+@using BlazorApp.Services
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h1>Create New Post</h1>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<div class="card mt-3 p-3">
+    <div class="mb-2">
+        <label for="title">Title</label>
+        <InputText id="title" class="form-control" @bind-Value="newPostTitle" />
+    </div>
+
+    <div class="mb-2">
+        <label for="body">Body</label>
+        <InputTextArea id="body" class="form-control" @bind-Value="newPostBody" />
+    </div>
+
+    <div class="mb-2">
+        <label for="username">User Name</label>
+        <InputText id="username" class="form-control" @bind-Value="newPostUserName" />
+    </div>
+
+    <div class="mb-2">
+        <label for="subforum">SubForum ID</label>
+        <InputNumber id="subforum" class="form-control" @bind-Value="newPostSubForumId" />
+    </div>
+
+    <button class="btn btn-primary" @onclick="SubmitPost" disabled="@isCreatingPost">
+        @(isCreatingPost ? "Creating..." : "Create Post")
+    </button>
+    <button class="btn btn-secondary ms-2" @onclick="GoBack">Cancel</button>
+</div>
+
+@code {
+    private string newPostTitle = string.Empty;
+    private string newPostBody = string.Empty;
+    private string newPostUserName = string.Empty;
+    private int newPostSubForumId = 0;
+
+    private bool isCreatingPost;
+    private string? errorMessage;
+
+    private IPostService postService => new HttpPostService(Http);
+
+    protected override void OnInitialized()
+    {
+        // Optionally initialize defaults here
+    }
+
+    private async Task SubmitPost()
+{
+    if (string.IsNullOrWhiteSpace(newPostTitle) || string.IsNullOrWhiteSpace(newPostBody) || string.IsNullOrWhiteSpace(newPostUserName))
+    {
+        errorMessage = "Title, body, and user name are required.";
+        return;
+    }
+
+    isCreatingPost = true;
+    errorMessage = null;
+
+    try
+    {
+        var userService = new HttpUserService(Http);
+        var users = await userService.GetAllAsync(newPostUserName);
+        var user = users.FirstOrDefault();
+
+        if (user == null)
+        {
+            errorMessage = $"User '{newPostUserName}' not found.";
+            return;
+        }
+
+        var createPost = new CreatePostDto
+        {
+            Title = newPostTitle,
+            Body = newPostBody,
+            UserId = user.Id,
+            SubForumId = newPostSubForumId
+        };
+
+        await postService.AddPostAsync(createPost);
+
+        Navigation.NavigateTo("/posts");
+    }
+    catch (Exception ex)
+    {
+        errorMessage = "Failed to create post: " + ex.Message;
+    }
+    finally
+    {
+        isCreatingPost = false;
+    }
+}
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/posts");
+    }
+}

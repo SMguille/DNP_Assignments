@@ -1,6 +1,9 @@
 using System;
 using System.Text.Json;
+using System.Net.Http.Json;
 using ApiContracts;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BlazorApp.Services;
 
@@ -27,10 +30,54 @@ public class HttpUserService : IUserService
         })!;
     }
 
-    public Task UpdateUserAsync(int id, UpdateUserDto request)
+    public async Task UpdateUserAsync(int id, UpdateUserDto request)
     {
-        throw new NotImplementedException();
+        HttpResponseMessage httpResponse = await client.PutAsJsonAsync($"users/{id}", request);
+        string response = await httpResponse.Content.ReadAsStringAsync();
+        if (!httpResponse.IsSuccessStatusCode)
+        {
+            throw new Exception(response);
+        }
+    }
+    
+
+    public async Task<UserDto> GetUSer(int id)
+    {
+        HttpResponseMessage httpResponse = await client.GetAsync($"users/{id}");
+        string response = await httpResponse.Content.ReadAsStringAsync();
+        if (!httpResponse.IsSuccessStatusCode)
+        {
+            throw new Exception(response);
+        }
+        return JsonSerializer.Deserialize<UserDto>(response, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        }) ?? new UserDto();
+
+    }
+    public async Task<List<UserDto>> GetAllAsync(string? userName)
+    {
+        HttpResponseMessage httpResponse = await client.GetAsync("users");
+        string response = await httpResponse.Content.ReadAsStringAsync();
+        if (!httpResponse.IsSuccessStatusCode)
+        {
+            throw new Exception(response);
+        }
+        return JsonSerializer.Deserialize<List<UserDto>>(response, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        }) ?? new List<UserDto>();
     }
 
-    
+    public async Task<IActionResult> Delete(int id)
+    {
+        HttpResponseMessage httpResponse = await client.DeleteAsync($"users/{id}");
+        string response = await httpResponse.Content.ReadAsStringAsync();
+        if (!httpResponse.IsSuccessStatusCode)
+        {
+            throw new Exception(response);
+        }
+        return new NoContentResult();
+    }
+
 }

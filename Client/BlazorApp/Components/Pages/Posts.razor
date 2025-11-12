@@ -1,0 +1,66 @@
+﻿@page "/posts"
+@using ApiContracts
+@using BlazorApp.Services
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+
+<h1>All Posts</h1>
+
+@if (isLoading)
+{
+    <p>Loading posts...</p>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else
+{
+    @foreach (var post in posts)
+    {
+        <div class="card mt-3" style="cursor: pointer;" @onclick="@(() => NavigateToPost(post.Id))">
+            <div class="card-body">
+                <h5 class="card-title">@post.Title - <span class="text-muted" style="font-size: 0.8rem;">By @post.Author?.UserName</span></h5>
+                <p>@post.Body</p>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private List<PostDto> posts = new();
+    private bool isLoading;
+    private string? errorMessage;
+
+    private IPostService postService => new HttpPostService(Http);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPosts();
+    }
+
+    private async Task LoadPosts()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            posts = await postService.GetAllPostsAsync(null, null, null);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+        private void NavigateToPost(int postId)
+    {
+        Navigation.NavigateTo($"posts/{postId}");
+    }
+
+}

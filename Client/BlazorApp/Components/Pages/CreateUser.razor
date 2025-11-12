@@ -1,0 +1,84 @@
+﻿@page "/users/create"
+@using ApiContracts
+@using BlazorApp.Services
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h1>Create New User</h1>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<div class="card mt-3 p-3">
+    <div class="mb-2">
+        <label for="username">User Name</label>
+        <InputText id="username" class="form-control" @bind-Value="newUserName" />
+    </div>
+
+    <div class="mb-2">
+        <label for="password">Password</label>
+        <InputText id="password" type="password" class="form-control" @bind-Value="newUserPassword" />
+    </div>
+
+    <div class="mb-2">
+        <label for="email">Email</label>
+        <InputText id="email" type="email" class="form-control" @bind-Value="newUserEmail" />
+    </div>
+
+    <button class="btn btn-primary" @onclick="SubmitUser" disabled="@isCreatingUser">
+        @(isCreatingUser ? "Creating..." : "Create User")
+    </button>
+    <button class="btn btn-secondary ms-2" @onclick="GoBack">Cancel</button>
+</div>
+
+@code {
+    private string newUserName = string.Empty;
+    private string newUserPassword = string.Empty;
+    private string? newUserEmail;
+
+    private bool isCreatingUser;
+    private string? errorMessage;
+
+    private IUserService userService => new HttpUserService(Http);
+
+    private async Task SubmitUser()
+    {
+        if (string.IsNullOrWhiteSpace(newUserName) || string.IsNullOrWhiteSpace(newUserPassword))
+        {
+            errorMessage = "Username and password are required.";
+            return;
+        }
+
+        isCreatingUser = true;
+        errorMessage = null;
+
+        try
+        {
+            var createUserDto = new CreateUserDto
+            {
+                UserName = newUserName,
+                Password = newUserPassword,
+                Email = newUserEmail
+            };
+
+            await userService.AddUserAsync(createUserDto);
+
+            Navigation.NavigateTo("/users");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to create user: " + ex.Message;
+        }
+        finally
+        {
+            isCreatingUser = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/users");
+    }
+}
