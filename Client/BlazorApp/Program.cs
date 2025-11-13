@@ -1,6 +1,8 @@
 using BlazorApp.Components;
 using BlazorApp.Services;
 using ApiContracts;
+using Microsoft.AspNetCore.Components.Authorization;
+using BlazorApp.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +12,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddScoped(sp => new HttpClient
     {
-        BaseAddress = new Uri("https://localhost:7093/api/") //Change port to the one from the server
+        BaseAddress = new Uri("https://localhost:7093/") //Change port to the one from the server
     }
 );
 
@@ -18,6 +20,7 @@ builder.Services.AddScoped(sp => new HttpClient
 builder.Services.AddScoped<ICommentService, HttpCommentService>();
 builder.Services.AddScoped<IPostService, HttpPostService>();
 builder.Services.AddScoped<IUserService, HttpUserService>();
+builder.Services.AddScoped<AuthenticationStateProvider, SimpleAuthProvider>();
 
 var app = builder.Build();
 

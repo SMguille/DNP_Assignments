@@ -1,9 +1,11 @@
 ﻿@page "/posts"
+@attribute [Authorize]
+
+@using System.Security.Claims
 @using ApiContracts
 @using BlazorApp.Services
 @inject HttpClient Http
 @inject NavigationManager Navigation
-
 
 <h1>All Posts</h1>
 
@@ -19,11 +21,41 @@ else
 {
     @foreach (var post in posts)
     {
-        <div class="card mt-3" style="cursor: pointer;" @onclick="@(() => NavigateToPost(post.Id))">
-            <div class="card-body">
-                <h5 class="card-title">@post.Title - <span class="text-muted" style="font-size: 0.8rem;">By @post.Author?.UserName</span></h5>
+        <div class="card mt-3 p-3">
+
+            @if (selectedPostId == post.Id)
+            {
+                <!-- EDIT MODE -->
+                <h5>Editing Post</h5>
+                <input class="form-control mb-2"
+                       @bind="editTitle"
+                       placeholder="Edit title" />
+
+                <textarea class="form-control mb-2"
+                          @bind="editBody"
+                          rows="4"></textarea>
+
+                <button class="btn btn-success me-2" @onclick="ConfirmEdit">Confirm Changes</button>
+                <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+            }
+            else
+            {
+                <!-- NORMAL VIEW MODE -->
+                <h5 class="card-title">
+                    @post.Title -
+                    <span class="text-muted" style="font-size: 0.8rem;">
+                        By @post.Author?.UserName
+                    </span>
+
+                    @if (user?.Id == post.UserId)
+                    {
+                        <button class="btn btn-sm btn-primary ms-3"
+                                @onclick="@(e => StartEditing(post))">Edit</button>
+                    }
+                </h5>
+
                 <p>@post.Body</p>
-            </div>
+            }
         </div>
     }
 }
@@ -31,13 +63,20 @@ else
 @code {
     private List<PostDto> posts = new();
     private bool isLoading;
-    private string? errorMessage;
-
+    private string errorMessage;
     private IPostService postService => new HttpPostService(Http);
+
+    // -----------------------
+    // Editing state variables
+    // -----------------------
+    private int selectedPostId = 0;
+    private string editTitle;
+    private string editBody;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadPosts();
+        await LoadUser();
     }
 
     private async Task LoadPosts()
@@ -58,9 +97,93 @@ else
             isLoading = false;
         }
     }
-        private void NavigateToPost(int postId)
+
+    // --------------------------------------
+    // Load user from authentication claims
+    // --------------------------------------
+    [CascadingParameter] public Task<AuthenticationState> State { get; set; }
+    private UserDto user;
+
+    private async Task LoadUser()
     {
-        Navigation.NavigateTo($"posts/{postId}");
+        AuthenticationState authState = await State;
+        var userClaims = authState.User;
+
+        if (!userClaims.Identity?.IsAuthenticated ?? true)
+        {
+            return;
+        }
+
+        string? userIdAsString = userClaims
+            .Claims
+            .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        if (userIdAsString == null)
+        {
+            errorMessage = "User does not contain a NameIdentifier claim.";
+            return;
+        }
+
+        var userId = int.Parse(userIdAsString);
+
+        try
+        {
+            var userService = new HttpUserService(Http);
+            user = await userService.GetUSer(userId);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to retrieve user: " + ex.Message;
+        }
+    }
+    // -------------------------
+    // Start Editing a Post
+    // -------------------------
+private void StartEditing(PostDto post)
+{
+    selectedPostId = post.Id;
+    editTitle = post.Title;
+    editBody = post.Body;
+}
+
+    // -------------------------
+    // Cancel Editing
+    // -------------------------
+    private void CancelEdit()
+    {
+        selectedPostId = 0;
+        editTitle = "";
+        editBody = "";
     }
 
+    // -------------------------
+    // Confirm Edit
+    // -------------------------
+    private async Task ConfirmEdit()
+    {
+        try
+        {
+            var original = posts.First(p => p.Id == selectedPostId);
+
+            var updateRequest = new UpdatePostDto(
+                Title: editTitle,
+                Body: editBody,
+                UserId: user.Id
+            )
+            {
+                Id = selectedPostId
+            };
+
+            var updated = await postService.UpdatePostAsync(selectedPostId, updateRequest);
+
+            var index = posts.FindIndex(p => p.Id == selectedPostId);
+            posts[index] = updated;
+
+            CancelEdit();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
 }

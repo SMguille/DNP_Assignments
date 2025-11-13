@@ -10,7 +10,7 @@ namespace WebAPI.Controllers;
 
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class UsersController(IUserRepository userRepo) : ControllerBase
 {
 

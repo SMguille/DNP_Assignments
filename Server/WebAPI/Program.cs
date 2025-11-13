@@ -16,10 +16,11 @@ builder.Services.AddScoped<IUserRepository, UserFileRepository>();
 
 var app = builder.Build();
 
-// Map endpoints
-app.MapControllers();
-
-// Optional HTTPS redirect
+// Optional: use HTTPS redirection
 app.UseHttpsRedirection();
 
+// Map controller endpoints
+app.MapControllers();
+
+// Run the application
 app.Run();

@@ -8,7 +8,7 @@ public class UpdatePostDto(string Title, string Body, int UserId, int SubForumId
     public string Title { get; set; } = Title;
     public string Body { get; set; } = Body;
     public int UserId { get; set; } = UserId;
-    public int SubForumId { get; set; } = SubForumId;
+    public int? SubForumId { get; set; } = SubForumId;
 
     public UpdatePostDto() : this(string.Empty, string.Empty, 0, 0)
     {

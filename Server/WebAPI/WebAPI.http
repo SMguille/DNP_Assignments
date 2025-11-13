@@ -1,4 +1,4 @@
-@WebAPI_HostAddress = http://localhost:5033
+@WebAPI_HostAddress = https://localhost:7093
 Accept: application/json
 
 #########################################
@@ -10,7 +10,7 @@ POST {{WebAPI_HostAddress}}/users
 Content-Type: application/json
 
 {
-  "userName": "alice0",
+  "userName": "alice2",
   "password": "password123",
   "email": "alice@example.com"
 }
@@ -55,7 +55,7 @@ DELETE {{WebAPI_HostAddress}}/users/1
 #########################################
 
 ### Create Post
-POST {{WebAPI_HostAddress}}/api/posts
+POST {{WebAPI_HostAddress}}/posts
 Content-Type: application/json
 
 {
@@ -68,37 +68,37 @@ Content-Type: application/json
 ###
 
 ### Get All Posts
-GET {{WebAPI_HostAddress}}/api/posts
+GET {{WebAPI_HostAddress}}/posts
 Accept: application/json
 
 ###
 
 ### Filter Posts by Title
-GET {{WebAPI_HostAddress}}/api/posts?title=first
+GET {{WebAPI_HostAddress}}/posts?title=first
 Accept: application/json
 
 ###
 
 ### Filter Posts by Author Name
-GET {{WebAPI_HostAddress}}/api/posts?createdByName=alice
+GET {{WebAPI_HostAddress}}/posts?createdByName=alice
 Accept: application/json
 
 ###
 
 ### Filter Posts by Author ID
-GET {{WebAPI_HostAddress}}/api/posts?createdById=1
+GET {{WebAPI_HostAddress}}/posts?createdById=1
 Accept: application/json
 
 ###
 
 ### Get Post by ID
-GET {{WebAPI_HostAddress}}/api/posts/1
+GET {{WebAPI_HostAddress}}/posts/1
 Accept: application/json
 
 ###
 
 ### Update Post
-PUT {{WebAPI_HostAddress}}/api/posts/1
+PUT {{WebAPI_HostAddress}}/posts/1
 Content-Type: application/json
 
 {
@@ -112,14 +112,14 @@ Content-Type: application/json
 ###
 
 ### Delete Post
-DELETE {{WebAPI_HostAddress}}/api/posts/1
+DELETE {{WebAPI_HostAddress}}/posts/1
 
 #########################################
 # COMMENTS CONTROLLER
 #########################################
 
 ### Create Comment
-POST {{WebAPI_HostAddress}}/api/comments
+POST {{WebAPI_HostAddress}}/comments
 Content-Type: application/json
 
 {
@@ -131,37 +131,37 @@ Content-Type: application/json
 ###
 
 ### Get All Comments
-GET {{WebAPI_HostAddress}}/api/comments
+GET {{WebAPI_HostAddress}}/comments
 Accept: application/json
 
 ###
 
 ### Filter Comments by Post ID
-GET {{WebAPI_HostAddress}}/api/comments?postId=1
+GET {{WebAPI_HostAddress}}/comments?postId=1
 Accept: application/json
 
 ###
 
 ### Filter Comments by Username
-GET {{WebAPI_HostAddress}}/api/comments?createdByName=alice
+GET {{WebAPI_HostAddress}}/comments?createdByName=alice
 Accept: application/json
 
 ###
 
 ### Filter Comments by User ID
-GET {{WebAPI_HostAddress}}/api/comments?createdById=1
+GET {{WebAPI_HostAddress}}/comments?createdById=1
 Accept: application/json
 
 ###
 
 ### Get Comment by ID
-GET {{WebAPI_HostAddress}}/api/comments/1
+GET {{WebAPI_HostAddress}}/comments/1
 Accept: application/json
 
 ###
 
 ### Update Comment
-PUT {{WebAPI_HostAddress}}/api/comments/1
+PUT {{WebAPI_HostAddress}}/comments/1
 Content-Type: application/json
 
 {
@@ -174,4 +174,16 @@ Content-Type: application/json
 ###
 
 ### Delete Comment
-DELETE {{WebAPI_HostAddress}}/api/comments/1
+DELETE {{WebAPI_HostAddress}}/comments/1
+
+#########################################
+# AUTHENTICATION CONTROLLER
+#########################################
+
+POST {{WebAPI_HostAddress}}/auth/login
+Content-Type: application/json
+
+{
+  "userName": "alice1",
+  "password": "password123"
+}

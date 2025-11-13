@@ -9,7 +9,7 @@ using System.Data;
 
 namespace WebAPI.Controllers;
 
-[Route("api/[controller]")]
+[Route("[controller]")]
 [ApiController] 
 public class PostsController(IPostRepository postRepository, IUserRepository userRepository) : ControllerBase
 {
@@ -45,7 +45,6 @@ public class PostsController(IPostRepository postRepository, IUserRepository use
         existingPost.Title = request.Title;
         existingPost.Body = request.Body;
         existingPost.UserId = request.UserId;
-        existingPost.SubForumId = request.SubForumId;
 
         var updatedPost = await postRepo.UpdateAsync(existingPost);
 
