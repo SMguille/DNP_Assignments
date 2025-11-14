@@ -3,8 +3,12 @@
 
 @using ApiContracts
 @using BlazorApp.Services
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @inject HttpClient Http
 @inject NavigationManager Navigation
+
+<PageTitle>Create Post</PageTitle>
 
 <h1>Create New Post</h1>
 
@@ -25,11 +29,6 @@
     </div>
 
     <div class="mb-2">
-        <label for="username">User Name</label>
-        <InputText id="username" class="form-control" @bind-Value="newPostUserName" />
-    </div>
-
-    <div class="mb-2">
         <label for="subforum">SubForum ID</label>
         <InputNumber id="subforum" class="form-control" @bind-Value="newPostSubForumId" />
     </div>
@@ -41,9 +40,10 @@
 </div>
 
 @code {
+    [CascadingParameter] public Task<AuthenticationState> AuthState { get; set; } = default!;
+
     private string newPostTitle = string.Empty;
     private string newPostBody = string.Empty;
-    private string newPostUserName = string.Empty;
     private int newPostSubForumId = 0;
 
     private bool isCreatingPost;
@@ -57,49 +57,64 @@
     }
 
     private async Task SubmitPost()
-{
-    if (string.IsNullOrWhiteSpace(newPostTitle) || string.IsNullOrWhiteSpace(newPostBody) || string.IsNullOrWhiteSpace(newPostUserName))
     {
-        errorMessage = "Title, body, and user name are required.";
-        return;
-    }
-
-    isCreatingPost = true;
-    errorMessage = null;
-
-    try
-    {
-        var userService = new HttpUserService(Http);
-        var users = await userService.GetAllAsync(newPostUserName);
-        var user = users.FirstOrDefault();
-
-        if (user == null)
+        if (string.IsNullOrWhiteSpace(newPostTitle) || string.IsNullOrWhiteSpace(newPostBody))
         {
-            errorMessage = $"User '{newPostUserName}' not found.";
+            errorMessage = "Title and body are required.";
             return;
         }
 
-        var createPost = new CreatePostDto
+        // get authenticated user id from claims
+        var auth = await AuthState;
+        var user = auth.User;
+        if (!(user.Identity?.IsAuthenticated ?? false))
         {
-            Title = newPostTitle,
-            Body = newPostBody,
-            UserId = user.Id,
-            SubForumId = newPostSubForumId
-        };
+            errorMessage = "You must be authenticated to create a post.";
+            return;
+        }
 
-        await postService.AddPostAsync(createPost);
+        var idClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value;
+        if (!int.TryParse(idClaim, out var userId))
+        {
+            errorMessage = "Unable to determine authenticated user id from claims.";
+            return;
+        }
 
-        Navigation.NavigateTo("/posts");
+        isCreatingPost = true;
+        errorMessage = null;
+
+        try
+        {
+            // optional: validate user exists via users API
+            var userService = new HttpUserService(Http);
+            var existing = await userService.GetUSer(userId);
+            if (existing == null)
+            {
+                errorMessage = $"Authenticated user (id={userId}) not found.";
+                return;
+            }
+
+            var createPost = new CreatePostDto
+            {
+                Title = newPostTitle,
+                Body = newPostBody,
+                UserId = userId,
+                SubForumId = newPostSubForumId
+            };
+
+            await postService.AddPostAsync(createPost);
+
+            Navigation.NavigateTo("/posts");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to create post: " + ex.Message;
+        }
+        finally
+        {
+            isCreatingPost = false;
+        }
     }
-    catch (Exception ex)
-    {
-        errorMessage = "Failed to create post: " + ex.Message;
-    }
-    finally
-    {
-        isCreatingPost = false;
-    }
-}
 
     private void GoBack()
     {
