@@ -21,41 +21,49 @@ else
 {
     @foreach (var post in posts)
     {
-        <div class="card mt-3 p-3">
+        <div class="card mt-3" style="cursor: pointer;" @onclick="@(() => NavigateToPost(post.Id))">
 
-            @if (selectedPostId == post.Id)
-            {
-                <!-- EDIT MODE -->
-                <h5>Editing Post</h5>
-                <input class="form-control mb-2"
-                       @bind="editTitle"
-                       placeholder="Edit title" />
+            <div class="card mt-3 p-3">
 
-                <textarea class="form-control mb-2"
-                          @bind="editBody"
-                          rows="4"></textarea>
+                @if (selectedPostId == post.Id)
+                {
+                    <!-- EDIT MODE -->
+                    <h5>Editing Post</h5>
+                    <input class="form-control mb-2"
+                        @onclick:stopPropagation="true"
+                        @bind="editTitle"
+                        placeholder="Edit title" />
 
-                <button class="btn btn-success me-2" @onclick="ConfirmEdit">Confirm Changes</button>
-                <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
-            }
-            else
-            {
-                <!-- NORMAL VIEW MODE -->
-                <h5 class="card-title">
-                    @post.Title -
-                    <span class="text-muted" style="font-size: 0.8rem;">
-                        By @post.Author?.UserName
-                    </span>
+                    <textarea class="form-control mb-2"
+                            @onclick:stopPropagation="true"
+                            @bind="editBody"
+                            rows="4"></textarea>
 
-                    @if (user?.Id == post.UserId)
-                    {
-                        <button class="btn btn-sm btn-primary ms-3"
-                                @onclick="@(e => StartEditing(post))">Edit</button>
-                    }
-                </h5>
+                    <button class="btn btn-success me-2"  @onclick:stopPropagation="true" @onclick="ConfirmEdit">Confirm Changes</button>
+                    <button class="btn btn-secondary"  @onclick:stopPropagation="true" @onclick="CancelEdit">Cancel</button>
+                }
+                else
+                {
+                    <!-- NORMAL VIEW MODE -->
+                    <h5 class="card-title">
+                        @post.Title -
+                        <span class="text-muted" style="font-size: 0.8rem;">
+                            By @post.Author?.UserName
+                        </span>
 
-                <p>@post.Body</p>
-            }
+                        @if (user?.Id == post.UserId)
+                        {
+                            <button class="btn btn-sm btn-primary ms-3"
+                                    @onclick:stopPropagation="true"
+                                    @onclick="@(e => StartEditing(post))">
+                                Edit
+                            </button>
+                        }
+                    </h5>
+
+                    <p>@post.Body</p>
+                }
+            </div>
         </div>
     }
 }
@@ -186,4 +194,10 @@ private void StartEditing(PostDto post)
             errorMessage = ex.Message;
         }
     }
+
+    private void NavigateToPost(int postId)
+    {
+        Navigation.NavigateTo($"posts/{postId}");
+    }
+
 }
