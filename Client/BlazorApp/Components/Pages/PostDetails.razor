@@ -1,8 +1,10 @@
 ﻿@page "/posts/{Id:int}"
 @using ApiContracts
 @using BlazorApp.Services
+@using System.Security.Claims
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Authorization
 
 <h1>Post Details</h1> 
 <span><button class="btn btn-secondary" @onclick="GoBack">Back</button></span>
@@ -49,10 +51,6 @@ else if (post != null)
     <div class="card mt-4 p-3">
         <h5>Add a Comment</h5>
         <div class="mb-2">
-            <label for="username">User Name</label>
-            <InputText id="username" class="form-control" @bind-Value="newCommentUserName" />
-        </div>
-        <div class="mb-2">
             <label for="body">Comment</label>
             <InputTextArea id="body" class="form-control" @bind-Value="newCommentBody" />
         </div>
@@ -70,8 +68,6 @@ else if (post != null)
     private List<CommentDto>? comments;
     private bool isLoading;
     private string? errorMessage;
-
-    private string newCommentUserName = string.Empty;
     private string newCommentBody = string.Empty;
     private bool isAddingComment;
 
@@ -81,6 +77,7 @@ else if (post != null)
     protected override async Task OnInitializedAsync()
     {
         await LoadPost();
+        await LoadUser(); // <-- ensure user is loaded so AddComment can use claims
     }
 
     private async Task LoadPost()
@@ -110,9 +107,15 @@ else if (post != null)
 
     private async Task AddComment()
     {
-        if (string.IsNullOrWhiteSpace(newCommentUserName) || string.IsNullOrWhiteSpace(newCommentBody))
+        if (string.IsNullOrWhiteSpace(newCommentBody))
         {
-            errorMessage = "Both user name and comment body are required.";
+            errorMessage = "Comment body is required.";
+            return;
+        }
+
+        if (user == null)
+        {
+            errorMessage = "You must be signed in to add a comment.";
             return;
         }
 
@@ -121,21 +124,6 @@ else if (post != null)
 
         try
         {
-            // Initialize the user service
-            var userService = new HttpUserService(Http);
-
-            // Fetch users filtered by username
-            var users = await userService.GetAllAsync(newCommentUserName);
-
-            // Get the first matching user
-            var user = users.FirstOrDefault();
-            if (user == null)
-            {
-                errorMessage = $"User '{newCommentUserName}' not found.";
-                return;
-            }
-
-            // Create the comment DTO
             var createComment = new CreateCommentDto
             {
                 PostId = Id,
@@ -143,14 +131,11 @@ else if (post != null)
                 Body = newCommentBody
             };
 
-            // Add comment via the comment service
             await commentService.AddComment(createComment);
 
-            // Reload all comments
+            // Reload comments
             comments = (await commentService.GetAllComments(Id)).ToList();
 
-            // Clear input fields
-            newCommentUserName = string.Empty;
             newCommentBody = string.Empty;
         }
         catch (Exception ex)
@@ -160,6 +145,39 @@ else if (post != null)
         finally
         {
             isAddingComment = false;
+        }
+    }
+
+    [CascadingParameter] public Task<AuthenticationState> State { get; set; } = default!;
+    private UserDto? user;
+
+    private async Task LoadUser()
+    {
+        try
+        {
+            var authState = await State;
+            var userClaims = authState.User;
+
+            if (!(userClaims.Identity?.IsAuthenticated ?? false))
+            {
+                // not authenticated
+                user = null;
+                return;
+            }
+
+            string? userIdAsString = userClaims.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdAsString, out var userId))
+            {
+                errorMessage = "Unable to determine authenticated user id from claims.";
+                return;
+            }
+
+            var userService = new HttpUserService(Http);
+            user = await userService.GetUSer(userId);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to load user: " + ex.Message;
         }
     }
 }
