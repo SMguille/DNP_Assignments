@@ -2,13 +2,27 @@ using System;
 
 namespace Entities;
 
-public class Comment(string Body, int PostId, int UserId)
+public class Comment
 {
-    public int Id { get; set; } = 0;
-    public string Body { get; set; } = Body;
-    public int PostId { get; set; } = PostId;
-    public int UserId { get; set; } = UserId;
-    public Comment() : this(string.Empty, 0, 0)
+    public int Id { get; set; }
+    public string Body { get; set; }
+    
+    // Foreign Keys
+    public int PostId { get; set; }
+    public int UserId { get; set; }
+
+    // Navigation Property: A comment belongs to a specific Post
+    public Post Post { get; set; }
+    
+    // Navigation Property: A comment is written by a specific User
+    public User User { get; set; }
+
+    public Comment() {}
+
+    public Comment(string body, int postId, int userId)
     {
+        Body = body;
+        PostId = postId;
+        UserId = userId;
     }
 }

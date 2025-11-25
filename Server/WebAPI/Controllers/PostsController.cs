@@ -5,6 +5,7 @@ using RepositoryContracts;
 using Entities;
 using ApiContracts;
 using System.Data;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace WebAPI.Controllers;
@@ -59,18 +60,57 @@ public class PostsController(IPostRepository postRepository, IUserRepository use
         return Ok(updatedDto);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<PostDto>> GetPost(int id)
+[HttpGet("{id:int}")]
+public async Task<IResult> GetPost(
+    [FromRoute] int id,
+    [FromQuery] bool includeAuthor, 
+    [FromQuery] bool includeComments)
+{
+    IQueryable<Post> queryForPost = postRepo
+        				.GetMany()
+        				.Where(p => p.Id == id)
+        				.AsQueryable();
+
+    if (includeAuthor)
     {
-        var post = await postRepo.GetSingleAsync(id);
-        if (post == null)
-            return NotFound();
-        return Ok(new PostDto { Id = post.Id, Title = post.Title, Body = post.Body, UserId = post.UserId});
+        queryForPost = queryForPost.Include(p => p.User);
     }
+
+    if (includeComments)
+    {
+        queryForPost = queryForPost.Include(p => p.Comments);
+    }
+
+    PostDto? dto = await queryForPost.Select(post => new PostDto()
+        {
+            Id = post.Id,
+            Title = post.Title,
+            Body = post.Body,
+            UserId = post.UserId,
+            Author = includeAuthor
+                ? new UserDto
+                {
+                    Id = post.User.Id,
+                    UserName = post.User.UserName
+                }
+                : null,
+            Comments = includeComments
+                ? post.Comments.Select(c => new CommentDto
+                {
+                    Id = c.Id,
+                    Body = c.Body,
+                    UserId = c.UserId
+                }).ToList()
+                : new ()
+        })
+        .FirstOrDefaultAsync();
+
+    return dto == null ? Results.NotFound() : Results.Ok(dto);
+}
 
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PostDto>>> GetAllPosts(
+    public async Task<ActionResult<IEnumerable<PostDto>>> GetAllPostsAsync(
         [FromQuery] string? title,
         [FromQuery] string? createdByName,
         [FromQuery] int? createdById)
@@ -97,13 +137,13 @@ public class PostsController(IPostRepository postRepository, IUserRepository use
             posts = posts.Where(p => p.UserId == createdById.Value);
         }
 
-        var postDtos = posts.Select(p => new PostDto
+        var postDtos = await posts.Select(p => new PostDto
         {
             Id = p.Id,
             Title = p.Title,
             Body = p.Body,
             UserId = p.UserId
-        }).ToList();
+        }).ToListAsync();
 
         return Ok(postDtos);
     }

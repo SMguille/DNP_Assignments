@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace ApiContracts;
 
@@ -11,4 +10,6 @@ public class PostDto
     public int UserId { get; set; } = 0;
 
     public UserDto? Author { get; set; }
+    
+    public List<CommentDto>? Comments { get; set; }
 }

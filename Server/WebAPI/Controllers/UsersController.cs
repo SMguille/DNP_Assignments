@@ -5,6 +5,7 @@ using Entities;
 using ApiContracts;
 using System.Data;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebAPI.Controllers;
 
@@ -17,7 +18,7 @@ public class UsersController(IUserRepository userRepo) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<UserDto>> AddUser([FromBody] CreateUserDto request)
     {
-        if (UserNameExists(request.UserName)) return Conflict("Username is already taken.");
+        if (await UserNameExists(request.UserName)) return Conflict("Username is already taken.");
 
         User user = new(request.UserName, request.Password);
         User created = await userRepo.AddAsync(user);
@@ -64,12 +65,11 @@ public class UsersController(IUserRepository userRepo) : ControllerBase
 
 
 [HttpGet]
-public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers(
+public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsersAsync(
     [FromQuery] string? userName)
 {
     // Fetch users and materialize immediately
-    var users = userRepo.GetMany().ToList();
-
+    var users = await userRepo.GetMany().ToListAsync();
     // Filter by userName if provided
     if (!string.IsNullOrWhiteSpace(userName))
     {
@@ -79,14 +79,12 @@ public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers(
     }
 
     // Project to UserDto — only primitive fields
-    var userDtos = users
-        .Select(u => new UserDto
+    var userDtos = users.Select(u => new UserDto
         {
             Id = u.Id,
             UserName = u.UserName,
             Email = u.Email
-        })
-        .ToList();
+        }).ToList();
 
     return Ok(userDtos);
 }
@@ -101,9 +99,9 @@ public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers(
         return NoContent();
     }
 
-    private bool UserNameExists(string userName)
+    private async Task<bool> UserNameExists(string userName)
     {
-        return userRepo.GetMany().Any(u => u.UserName == userName);
+        return await userRepo.GetMany().AnyAsync(u => u.UserName == userName);
     }
   
 }

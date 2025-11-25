@@ -53,25 +53,9 @@ public class HttpPostService : IPostService
     // Get a single post with author
     public async Task<PostDto?> GetPostAsync(int id)
     {
-        HttpResponseMessage httpResponse = await client.GetAsync($"posts/{id}");
-        string response = await httpResponse.Content.ReadAsStringAsync();
-
-        if (!httpResponse.IsSuccessStatusCode)
-            throw new Exception(response);
-
-        var post = JsonSerializer.Deserialize<PostDto>(response, new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        }) ?? null;
-
-        if (post != null)
-        {
-            post.Author = await GetAuthorAsync(post.UserId);
-        }
-
-        return post;
+        // We add query parameters to tell the server to include the data we need
+        return await client.GetFromJsonAsync<PostDto>($"posts/{id}?includeAuthor=true&includeComments=true");
     }
-
     // Get all posts with authors
     public async Task<List<PostDto>> GetAllPostsAsync(string? title = null, string? createdByName = null, int? createdById = null)
     {
