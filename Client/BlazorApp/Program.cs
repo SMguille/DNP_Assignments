@@ -37,8 +37,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForErrors: true);
-
 app.UseHttpsRedirection();
 
 // 🔥 Add authentication & authorization middlewares

@@ -1,63 +1,26 @@
 ﻿@page "/posts/{Id:int}"
 @using ApiContracts
 @using BlazorApp.Services
-@using System.Security.Claims
-@inject HttpClient Http
-@inject NavigationManager Navigation
-@using Microsoft.AspNetCore.Components.Authorization
+@inject IPostService PostService
 
-<h1>Post Details</h1> 
-<span><button class="btn btn-secondary" @onclick="GoBack">Back</button></span>
+<h3>@post?.Title</h3>
 
-@if (isLoading)
+<p>@post?.Body</p>
+
+<h4>Comments</h4>
+
+@if (post?.Comments == null)
 {
-    <p>Loading post...</p>
+    <p>No comments yet.</p>
 }
-else if (!string.IsNullOrEmpty(errorMessage))
+else
 {
-    <div class="alert alert-danger">@errorMessage</div>
-}
-else if (post != null)
-{
-    <div class="card mt-3">
-        <div class="card-body">
-            <h3>
-                @post.Title
-                <small class="text-muted">- By @(post.Author?.UserName ?? $"User #{post.UserId}")</small>
-            </h3>
-            <p>@post.Body</p>
-        </div>
-    </div>
-
-    <h4 class="mt-4">Comments @(@comments?.Count ?? 0)</h4>
-
-    @if (comments != null && comments.Any())
-    {
-        @foreach (var c in comments)
+    <ul>
+        @foreach (var comment in post.Comments)
         {
-            <div class="card mt-2">
-                <div class="card-body">
-                    <p>@c.Body</p>
-                    <small class="text-muted">By @(c.User?.UserName ?? $"User #{c.UserId}")</small>
-                </div>
-            </div>
+            <li>@comment.Body</li>
         }
-    }
-    else
-    {
-        <p>No comments yet.</p>
-    }
-
-    <div class="card mt-4 p-3">
-        <h5>Add a Comment</h5>
-        <div class="mb-2">
-            <label for="body">Comment</label>
-            <InputTextArea id="body" class="form-control" @bind-Value="newCommentBody" />
-        </div>
-        <button class="btn btn-primary" @onclick="AddComment" disabled="@isAddingComment">
-            @(isAddingComment ? "Adding..." : "Add Comment")
-        </button>
-    </div>
+    </ul>
 }
 
 @code {
@@ -65,119 +28,10 @@ else if (post != null)
     public int Id { get; set; }
 
     private PostDto? post;
-    private List<CommentDto>? comments;
-    private bool isLoading;
-    private string? errorMessage;
-    private string newCommentBody = string.Empty;
-    private bool isAddingComment;
-
-    private IPostService postService => new HttpPostService(Http);
-    private ICommentService commentService => new HttpCommentService(Http);
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadPost();
-        await LoadUser(); // <-- ensure user is loaded so AddComment can use claims
-    }
-
-    private async Task LoadPost()
-    {
-        isLoading = true;
-        errorMessage = null;
-
-        try
-        {
-            post = await postService.GetPostAsync(Id);
-            comments = (await commentService.GetAllComments(Id, null, null)).ToList();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Failed to load post: " + ex.Message;
-        }
-        finally
-        {
-            isLoading = false;
-        }
-    }
-
-    private void GoBack()
-    {
-        Navigation.NavigateTo("/posts");
-    }
-
-    private async Task AddComment()
-    {
-        if (string.IsNullOrWhiteSpace(newCommentBody))
-        {
-            errorMessage = "Comment body is required.";
-            return;
-        }
-
-        if (user == null)
-        {
-            errorMessage = "You must be signed in to add a comment.";
-            return;
-        }
-
-        isAddingComment = true;
-        errorMessage = null;
-
-        try
-        {
-            var createComment = new CreateCommentDto
-            {
-                PostId = Id,
-                UserId = user.Id,
-                Body = newCommentBody
-            };
-
-            await commentService.AddComment(createComment);
-
-            // Reload comments
-            comments = (await commentService.GetAllComments(Id)).ToList();
-
-            newCommentBody = string.Empty;
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Failed to add comment: " + ex.Message;
-        }
-        finally
-        {
-            isAddingComment = false;
-        }
-    }
-
-    [CascadingParameter] public Task<AuthenticationState> State { get; set; } = default!;
-    private UserDto? user;
-
-    private async Task LoadUser()
-    {
-        try
-        {
-            var authState = await State;
-            var userClaims = authState.User;
-
-            if (!(userClaims.Identity?.IsAuthenticated ?? false))
-            {
-                // not authenticated
-                user = null;
-                return;
-            }
-
-            string? userIdAsString = userClaims.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdAsString, out var userId))
-            {
-                errorMessage = "Unable to determine authenticated user id from claims.";
-                return;
-            }
-
-            var userService = new HttpUserService(Http);
-            user = await userService.GetUSer(userId);
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Failed to load user: " + ex.Message;
-        }
+        // Fetch the Single Post DTO, which now INCLUDES the comments list
+        post = await PostService.GetPostAsync(Id); 
     }
 }

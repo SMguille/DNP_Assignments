@@ -12,11 +12,12 @@
         <h3>Hello, @context.User.Identity.Name</h3>
     </Authorized>
     <NotAuthorized>
-        lol you are not logged in!
+        lol you are not logged in! Please log in or create an account to access all functionalities.
+<button @onclick='() => NavMgr.NavigateTo("users/create")'>Create an account</button> <br />
     </NotAuthorized>
 </AuthorizeView>
 Here you can browse interesting posts.
-    <button @onclick='() => NavMgr.NavigateTo("login")'>go to login</button>
+    <button @onclick='() => NavMgr.NavigateTo("login")'>Go to login</button>
 
 <AuthorizeView>
     <Authorized>
