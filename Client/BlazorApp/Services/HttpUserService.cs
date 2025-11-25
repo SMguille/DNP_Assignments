@@ -41,7 +41,7 @@ public class HttpUserService : IUserService
     }
     
 
-    public async Task<UserDto> GetUSer(int id)
+    public async Task<UserDto> GetUser(int id)
     {
         HttpResponseMessage httpResponse = await client.GetAsync($"users/{id}");
         string response = await httpResponse.Content.ReadAsStringAsync();

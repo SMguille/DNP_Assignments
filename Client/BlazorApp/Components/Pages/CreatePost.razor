@@ -87,7 +87,7 @@
         {
             // optional: validate user exists via users API
             var userService = new HttpUserService(Http);
-            var existing = await userService.GetUSer(userId);
+            var existing = await userService.GetUser(userId);
             if (existing == null)
             {
                 errorMessage = $"Authenticated user (id={userId}) not found.";
